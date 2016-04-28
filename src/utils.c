@@ -151,7 +151,7 @@ void pm(int M, int N, float *A)
     printf("\n");
 }
 
-char *find_replace(char *str, char *orig, char *rep)
+char *find_replace(char *str, char *orig, const char *rep)
 {
     static char buffer[4096];
     static char buffer2[4096];
