@@ -35,6 +35,7 @@ typedef struct network{
     int   *steps;
     int num_steps;
     int burn_in;
+    int i_snapshot_iteration;
 
     int inputs;
     int h, w, c;

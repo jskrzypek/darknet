@@ -22,7 +22,7 @@ int write_all_fail(int fd, char *buffer, size_t bytes);
 char *find_replace(char *str, char *orig, char *rep);
 void error(const char *s);
 void malloc_error();
-void file_error(char *s);
+void file_error(const char *s);
 void strip(char *s);
 void strip_char(char *s, char bad);
 void top_k(float *a, int n, int k, int *index);
