@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <time.h>
 #include "list.h"
+#include <stdbool.h>
 
 #define SECRET_NUM -1234
 
@@ -51,6 +52,7 @@ float dist_array(float *a, float *b, int n, int sub);
 float **one_hot_encode(float *a, int n, int k);
 float sec(clock_t clocks);
 int find_int_arg(int argc, char **argv, char *arg, int def);
+bool find_bool_arg(int argc, char **argv, char *arg, bool b_default);
 float find_float_arg(int argc, char **argv, char *arg, float def);
 int find_arg(int argc, char* argv[], char *arg);
 char *find_char_arg(int argc, char **argv, char *arg, char *def);
