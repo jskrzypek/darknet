@@ -58,5 +58,7 @@ int find_arg(int argc, char* argv[], char *arg);
 char *find_char_arg(int argc, char **argv, char *arg, char *def);
 int sample_array(float *a, int n);
 
+int count_lines_in_file (  const char * c_fn );
+
 #endif
 

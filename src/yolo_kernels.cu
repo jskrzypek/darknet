@@ -11,6 +11,13 @@ extern "C" {
 #include "box.h"
 #include "image.h"
 #include <sys/time.h>
+
+// global variables
+#include "yolo_global_variables.h"
+char ** c_class_names;
+int i_num_cl;
+image *img_class_labels;
+
 }
 
 #ifdef OPENCV
@@ -59,7 +66,22 @@ void *detect_in_thread(void *ptr)
     printf("\033[1;1H");
     printf("\nFPS:%.0f\n",fps);
     printf("Objects:\n\n");
-    draw_detections(det, l.side*l.side*l.n, demo_thresh, boxes, probs, voc_names, voc_labels, 20);
+    draw_detections(det, l.side*l.side*l.n, demo_thresh, boxes, probs, c_class_names, img_class_labels, i_num_cl);
+
+    if(MODE == 1)
+    {
+        IplImage* outputIpl= image_to_Ipl(det, w, h, depth, c, step);
+        cv::Mat outputMat = cv::cvarrToMat(outputIpl, true);
+        /*
+        cvNamedWindow("image", CV_WINDOW_AUTOSIZE);
+        cvShowImage("image", outputIpl); 
+        cvWaitKey(1);  
+        */
+        cvReleaseImage(&outputIpl);
+        cap_out << outputMat;
+        outputMat.release();
+     }
+
     return 0;
 }
 
