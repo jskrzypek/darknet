@@ -24,6 +24,8 @@ typedef struct network{
     float *output;
     learning_rate_policy policy;
 
+    char * c_ending_gt_files;
+
     float learning_rate;
     float gamma;
     float scale;
@@ -35,6 +37,7 @@ typedef struct network{
     int   *steps;
     int num_steps;
     int burn_in;
+    int i_snapshot_iteration;
 
     int inputs;
     int h, w, c;

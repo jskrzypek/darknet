@@ -101,26 +101,40 @@ void draw_bbox(image a, box bbox, int w, float r, float g, float b)
     }
 }
 
-void draw_detections(image im, int num, float thresh, box *boxes, float **probs, char **names, image *labels, int classes)
+void draw_detections( image im,
+                      int num,
+                      float thresh,
+                      box *boxes,
+                      float **probs,
+                      char **names,
+                      image *labels,
+                      int classes
+                    )
 {
     int i;
 
-    for(i = 0; i < num; ++i){
-        int class = max_index(probs[i], classes);
-        float prob = probs[i][class];
-        if(prob > thresh){
-            int width = pow(prob, 1./2.)*10+1;
-            width = 8;
-            printf("%s: %.0f%%\n", names[class], prob*100);
-            int offset = class*1 % classes;
-            float red = get_color(2,offset,classes);
+    for(i = 0; i < num; ++i)
+    {
+        int i_class = max_index(probs[i], classes);
+        float f_prob  = probs[i][i_class];
+        if(f_prob > thresh)
+        {
+            printf("%d  - %s: %.0f%%\n", i_class, names[i_class], f_prob*100);
+            int thickness = pow(f_prob, 1./2.)*10+1;
+
+            // compute the color code of the box's category
+            int offset  = i_class*1 % classes;
+            //
+            float red   = get_color(2,offset,classes);
             float green = get_color(1,offset,classes);
-            float blue = get_color(0,offset,classes);
+            float blue  = get_color(0,offset,classes);
+            //
             float rgb[3];
             rgb[0] = red;
             rgb[1] = green;
             rgb[2] = blue;
-            box b = boxes[i];
+            //
+            box b  = boxes[i];
 
             int left  = (b.x-b.w/2.)*im.w;
             int right = (b.x+b.w/2.)*im.w;
@@ -132,8 +146,9 @@ void draw_detections(image im, int num, float thresh, box *boxes, float **probs,
             if(top < 0) top = 0;
             if(bot > im.h-1) bot = im.h-1;
 
-            draw_box_width(im, left, top, right, bot, width, red, green, blue);
-            if (labels) draw_label(im, top + width, left, labels[class], rgb);
+            draw_box_width(im, left, top, right, bot, thickness, red, green, blue);
+            if (labels)
+                draw_label(im, top + thickness, left, labels[i_class], rgb);
         }
     }
 }
@@ -929,6 +944,42 @@ image ipl_to_image(IplImage* src)
     return out;
 }
 
+IplImage* image_to_Ipl(image img, int w, int h, int depth, int c, int step)
+{
+   int i, j, k, count= 0; 
+   IplImage* src= cvCreateImage(cvSize(w, h), depth, c);
+
+    for(k= 0; k < c; ++k){
+        for(i = 0; i < h; ++i){
+            for(j = 0; j < w; ++j){
+        src->imageData[i*step + j*c + k] = img.data[count++] * 255.;
+        }
+         }
+          }
+   cvCvtColor(src, src, CV_RGB2BGR);
+   return src;
+}
+
+/*
+Mat image_to_Mat(image img, int w, int h, int depth, int c)
+{
+   int i, j, k, count= 0; 
+   IplImage* src= cvCreateImage(cvSize(w, h), depth, c);
+  
+    for(k= 0; k < c; ++k){
+        for(i = 0; i < h; ++i){
+            for(j = 0; j < w; ++j){
+        src->imageData[i*step + j*c + k] = img.data[count++];
+        }
+         }
+          }
+   cvCvtColor(src, src, CV_RGB2BGR);
+   cv::Mat dst = cv::cvarrToMat(src, true);
+   cvReleaseImage(&src);
+    
+   return dst;
+}*/
+
 image load_image_cv(char *filename, int channels)
 {
     IplImage* src = 0;
@@ -940,6 +991,10 @@ image load_image_cv(char *filename, int channels)
         fprintf(stderr, "OpenCV can't force load with %d channels\n", channels);
     }
 
+    //add debug
+    //printf("%s\n", filename);
+    //flag = 1;
+
     if( (src = cvLoadImage(filename, flag)) == 0 )
     {
         fprintf(stderr, "Cannot load image \"%s\"\n", filename);
@@ -947,7 +1002,8 @@ image load_image_cv(char *filename, int channels)
         sprintf(buff, "echo %s >> bad.list", filename);
         system(buff);
         return make_image(10,10,3);
-        //exit(0);
+        // printf(" Cannot load image \"%s\"\n", filename);
+        // exit(0);
     }
     image out = ipl_to_image(src);
     cvReleaseImage(&src);
@@ -956,7 +1012,6 @@ image load_image_cv(char *filename, int channels)
 }
 
 #endif
-
 
 image load_image_stb(char *filename, int channels)
 {

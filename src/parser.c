@@ -252,7 +252,9 @@ detection_layer parse_detection(list *options, size_params params)
     int rescore = option_find_int(options, "rescore", 0);
     int num = option_find_int(options, "num", 1);
     int side = option_find_int(options, "side", 7);
-    detection_layer layer = make_detection_layer(params.batch, params.inputs, num, side, classes, coords, rescore);
+    bool b_debug = option_find_bool(options, "b_debug", false);
+
+    detection_layer layer = make_detection_layer(params.batch, params.inputs, num, side, classes, coords, rescore, b_debug);
 
     layer.softmax = option_find_int(options, "softmax", 0);
     layer.sqrt = option_find_int(options, "sqrt", 0);
@@ -457,6 +459,13 @@ void parse_net_options(list *options, network *net)
     net->batch *= net->time_steps;
     net->subdivisions = subdivs;
 
+    net->i_snapshot_iteration = option_find_int_quiet(options, "i_snapshot_iteration",1000);
+
+    // what is the file ending of the ground files?
+    char * ending     = option_find_str(options, "c_ending_gt_files", ".txt");
+    net->c_ending_gt_files = (char *)malloc(strlen(ending)+1);
+    strcpy(net->c_ending_gt_files,ending);
+
     net->h = option_find_int_quiet(options, "height",0);
     net->w = option_find_int_quiet(options, "width",0);
     net->c = option_find_int_quiet(options, "channels",0);
@@ -517,17 +526,24 @@ network parse_network_cfg(char *filename)
 
     section *s = (section *)n->val;
     list *options = s->options;
-    if(!is_network(s)) error("First section must be [net] or [network]");
+
+    // parse global network options, such as global learning rate, number of iterations, batch size, etc.
+    if(!is_network(s))
+    {
+        error("First section must be [net] or [network]");
+    }
     parse_net_options(options, &net);
 
-    params.h = net.h;
-    params.w = net.w;
-    params.c = net.c;
-    params.inputs = net.inputs;
-    params.batch = net.batch;
+    params.h          = net.h;
+    params.w          = net.w;
+    params.c          = net.c;
+    params.inputs     = net.inputs;
+    params.batch      = net.batch;
     params.time_steps = net.time_steps;
 
     size_t workspace_size = 0;
+
+    // now loop over all sections (i.e., consecutive layers) and read layer-specific configurations
     n = n->next;
     int count = 0;
     free_section(s);

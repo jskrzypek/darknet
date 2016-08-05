@@ -9,11 +9,11 @@
 
 unsigned int data_seed;
 
-list *get_paths(char *filename)
+list *get_paths(const char * c_filename)
 {
     char *path;
-    FILE *file = fopen(filename, "r");
-    if(!file) file_error(filename);
+    FILE *file = fopen(c_filename, "r");
+    if(!file) file_error(c_filename);
     list *lines = make_list();
     while((path=fgetl(file))){
         list_insert(lines, path);
@@ -196,6 +196,7 @@ void fill_truth_swag(char *path, float *truth, int classes, int flip, float dx, 
     labelpath = find_replace(labelpath, ".jpg", ".txt");
     labelpath = find_replace(labelpath, ".JPG", ".txt");
     labelpath = find_replace(labelpath, ".JPEG", ".txt");
+    labelpath = find_replace(labelpath, ".png", ".txt");
     int count = 0;
     box_label *boxes = read_boxes(labelpath, &count);
     randomize_boxes(boxes, count);
@@ -233,6 +234,7 @@ void fill_truth_region(char *path, float *truth, int classes, int num_boxes, int
     labelpath = find_replace(labelpath, ".jpg", ".txt");
     labelpath = find_replace(labelpath, ".JPG", ".txt");
     labelpath = find_replace(labelpath, ".JPEG", ".txt");
+    labelpath = find_replace(labelpath, ".png", ".txt");
     int count = 0;
     box_label *boxes = read_boxes(labelpath, &count);
     randomize_boxes(boxes, count);
@@ -279,6 +281,7 @@ void fill_truth_detection(char *path, int num_boxes, float *truth, int classes, 
     labelpath = find_replace(labelpath, ".jpg", ".txt");
     labelpath = find_replace(labelpath, ".JPG", ".txt");
     labelpath = find_replace(labelpath, ".JPEG", ".txt");
+    labelpath = find_replace(labelpath, ".png", ".txt");
     int count = 0;
     box_label *boxes = read_boxes(labelpath, &count);
     randomize_boxes(boxes, count);
@@ -601,7 +604,7 @@ data load_data_swag(char **paths, int n, int classes, float jitter)
     return d;
 }
 
-data load_data_detection(int n, char **paths, int m, int w, int h, int boxes, int classes, float jitter)
+data load_data_detection(int n, char **paths, int m, int w, int h, int num_boxes, int classes, float jitter, int background, const char * c_ending)
 {
     char **random_paths = get_random_paths(paths, n, m);
     int i;
@@ -612,7 +615,7 @@ data load_data_detection(int n, char **paths, int m, int w, int h, int boxes, in
     d.X.vals = calloc(d.X.rows, sizeof(float*));
     d.X.cols = h*w*3;
 
-    d.y = make_matrix(n, 5*boxes);
+    d.y = make_matrix(n, 5*num_boxes);
     for(i = 0; i < n; ++i){
         image orig = load_image_color(random_paths[i], 0, 0);
 
@@ -643,7 +646,7 @@ data load_data_detection(int n, char **paths, int m, int w, int h, int boxes, in
         if(flip) flip_image(sized);
         d.X.vals[i] = sized.data;
 
-        fill_truth_detection(random_paths[i], boxes, d.y.vals[i], classes, flip, dx, dy, 1./sx, 1./sy);
+        fill_truth_detection(random_paths[i], num_boxes, d.y.vals[i], classes, flip, dx, dy, 1./sx, 1./sy);
 
         free_image(orig);
         free_image(cropped);
@@ -674,7 +677,7 @@ void *load_thread(void *ptr)
     } else if (a.type == REGION_DATA){
         *a.d = load_data_region(a.n, a.paths, a.m, a.w, a.h, a.num_boxes, a.classes, a.jitter);
     } else if (a.type == DETECTION_DATA){
-        *a.d = load_data_detection(a.n, a.paths, a.m, a.w, a.h, a.num_boxes, a.classes, a.jitter);
+        *a.d = load_data_detection(a.n, a.paths, a.m, a.w, a.h, a.num_boxes, a.classes, a.jitter, a.background, a.c_ending);
     } else if (a.type == SWAG_DATA){
         *a.d = load_data_swag(a.paths, a.n, a.classes, a.jitter);
     } else if (a.type == COMPARE_DATA){

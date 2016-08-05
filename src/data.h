@@ -54,6 +54,7 @@ typedef struct load_args{
     image *im;
     image *resized;
     data_type type;
+    char * c_ending;
 } load_args;
 
 typedef struct{
@@ -70,7 +71,7 @@ void print_letters(float *pred, int n);
 data load_data_captcha(char **paths, int n, int m, int k, int w, int h);
 data load_data_captcha_encode(char **paths, int n, int m, int w, int h);
 data load_data(char **paths, int n, int m, char **labels, int k, int w, int h);
-data load_data_detection(int n, char **paths, int m, int w, int h, int boxes, int classes, float jitter);
+data load_data_detection(int n, char **paths, int m, int w, int h, int num_boxes, int classes, float jitter, int background, const char * c_ending);
 data load_data_tag(char **paths, int n, int m, int k, int min, int max, int size);
 data load_data_augment(char **paths, int n, int m, char **labels, int k, int min, int max, int size);
 data load_data_study(char **paths, int n, int m, char **labels, int k, int min, int max, int size);
@@ -82,7 +83,7 @@ data load_all_cifar10();
 
 data load_data_writing(char **paths, int n, int m, int w, int h, int out_w, int out_h);
 
-list *get_paths(char *filename);
+list *get_paths(const char * c_filename);
 char **get_labels(char *filename);
 void get_random_batch(data d, int n, float *X, float *y);
 data get_random_data(data d, int num);

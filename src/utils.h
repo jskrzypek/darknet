@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <time.h>
 #include "list.h"
+#include <stdbool.h>
 
 #define SECRET_NUM -1234
 
@@ -18,10 +19,10 @@ void read_all(int fd, char *buffer, size_t bytes);
 void write_all(int fd, char *buffer, size_t bytes);
 int read_all_fail(int fd, char *buffer, size_t bytes);
 int write_all_fail(int fd, char *buffer, size_t bytes);
-char *find_replace(char *str, char *orig, char *rep);
+char *find_replace(char *str, char *orig, const char *rep);
 void error(const char *s);
 void malloc_error();
-void file_error(char *s);
+void file_error(const char *s);
 void strip(char *s);
 void strip_char(char *s, char bad);
 void top_k(float *a, int n, int k, int *index);
@@ -51,10 +52,13 @@ float dist_array(float *a, float *b, int n, int sub);
 float **one_hot_encode(float *a, int n, int k);
 float sec(clock_t clocks);
 int find_int_arg(int argc, char **argv, char *arg, int def);
+bool find_bool_arg(int argc, char **argv, char *arg, bool b_default);
 float find_float_arg(int argc, char **argv, char *arg, float def);
 int find_arg(int argc, char* argv[], char *arg);
 char *find_char_arg(int argc, char **argv, char *arg, char *def);
 int sample_array(float *a, int n);
+
+int count_lines_in_file (  const char * c_fn );
 
 #endif
 
