@@ -567,7 +567,7 @@ void test_yolo_on_filelist(  char *cfgfile,
         printf("%s predicted in %f seconds.\n", c_filename, sec(clock()-time));
 
         // convert results to original image size
-        convert_yolo_detections(predictions, l.classes, l.n /*number of predicted boxes per cell*/, l.sqrt, l.side, 1 /*int w*/, 1/*int h*/, thresh, probs, boxes, 0 /*int only_objectness*/);
+        convert_detections(predictions, l.classes, l.n /*number of predicted boxes per cell*/, l.sqrt, l.side, 1 /*int w*/, 1/*int h*/, thresh, probs, boxes, 0 /*int only_objectness*/);
         // apply non-maximum suppresion to filter overlapping responses
         if (f_nms_threshold)
         {
@@ -673,9 +673,10 @@ void demo_swag(char *cfgfile, char *weightfile, float thresh){}
 #endif
  */
 
-void demo_yolo(char *cfgfile, char *weightfile, float thresh, int cam_index);
-#ifndef GPU
-void demo_yolo(char *cfgfile, char *weightfile, float thresh, int cam_index)
+#ifdef GPU
+void demo_yolo(char *cfgfile, char *weightfile, float thresh, int cam_index, char *filename);
+#else
+void demo_yolo(char *cfgfile, char *weightfile, float thresh, int cam_index, char *filename)
 {
     fprintf(stderr, "Darknet must be compiled with CUDA for YOLO demo.\n");
 }
@@ -866,8 +867,6 @@ void run_yolo(int argc, char **argv)
 
 
     float thresh  = find_float_arg(argc, argv, "-thresh", .2);
-    int cam_index = find_int_arg(argc, argv, "-c", 0);
-    int frame_skip = find_int_arg(argc, argv, "-s", 0);
 
     if(argc < 4){
         fprintf(stderr, "usage: %s %s [command (train/test/valid/...)] [cfg] [weights (optional)] [further arguments (optional)]\n", argv[0], argv[1]);
@@ -895,7 +894,7 @@ void run_yolo(int argc, char **argv)
         char * c_dest               = find_char_arg(  argc, argv, "-dest", "./bboxes.txt");
         float f_nms_threshold       = find_float_arg( argc, argv, "-nms", 0.5);
         char * c_filelist           = find_char_arg(  argc, argv, "-c_filelist", 0);
-        float thresh                = find_float_arg( argc, argv, "-thresh", .2);	
+        float thresh                = find_float_arg( argc, argv, "-thresh", .2);
 
         test_yolo_on_filelist( c_cfg, c_weights, c_filelist, thresh, b_draw_detections, b_write_detections, c_dest, f_nms_threshold );
     }
@@ -916,18 +915,26 @@ void run_yolo(int argc, char **argv)
     }
     else if(0==strcmp(argv[2], "demo"))
     {
-        demo_yolo(c_cfg, c_weights, thresh, cam_index);
+        float thresh               = find_float_arg( argc, argv, "-thresh", .2);
+        char * c_filename          = find_char_arg(  argc, argv, "-c_filename", 0) || (argc > 5) ? argv[5]: 0;
+        int frame_skip             = find_int_arg(   argc, argv, "-s", 0)
+                                     || find_int_arg(argc, argv, "-frame_skip", 0);
+        int cam_index              = find_int_arg(   argc, argv, "-c", 0)
+                                     || find_int_arg(argc, argv, "-cam_idx", 0);
+
+        demo(c_cfg, c_weights, thresh, cam_index, c_filename, c_class_names, img_class_labels, i_num_cl, frame_skip);
+    }
     else if(0==strcmp(argv[2], "demo_cam"))
     {
-        int cam_index              = find_int_arg(   argc, argv, "-cam_idx", 0);
-        float thresh               = find_float_arg( argc, argv, "-thresh", .2);
-	
+        int cam_index              = find_int_arg(   argc, argv, "-c", 0)
+                                     || find_int_arg(argc, argv, "-cam_idx", 0);
+
         demo_yolo(c_cfg, c_weights, thresh, cam_index, "NULL" /*filename*/);
     }
     else if(0==strcmp(argv[2], "demo_vid"))
     {
-        float thresh               = find_float_arg( argc, argv, "-thresh", .2);      
-        char * c_filename          = find_char_arg(  argc, argv, "-c_filename", 0);
+        float thresh               = find_float_arg( argc, argv, "-thresh", .2);
+        char * c_filename          = find_char_arg(  argc, argv, "-c_filename", 0) || (argc > 5) ? argv[5]: 0;
 	
         demo_yolo(c_cfg, c_weights, thresh, -1/*cam_index*/, c_filename);    
     }

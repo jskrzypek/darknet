@@ -615,7 +615,7 @@ data load_data_detection(int n, char **paths, int m, int w, int h, int num_boxes
     d.X.vals = calloc(d.X.rows, sizeof(float*));
     d.X.cols = h*w*3;
 
-    d.y = make_matrix(n, 5*boxes);
+    d.y = make_matrix(n, 5*num_boxes);
     for(i = 0; i < n; ++i){
         image orig = load_image_color(random_paths[i], 0, 0);
 
@@ -646,7 +646,7 @@ data load_data_detection(int n, char **paths, int m, int w, int h, int num_boxes
         if(flip) flip_image(sized);
         d.X.vals[i] = sized.data;
 
-        fill_truth_detection(random_paths[i], boxes, d.y.vals[i], classes, flip, dx, dy, 1./sx, 1./sy);
+        fill_truth_detection(random_paths[i], num_boxes, d.y.vals[i], classes, flip, dx, dy, 1./sx, 1./sy);
 
         free_image(orig);
         free_image(cropped);
