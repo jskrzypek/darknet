@@ -944,6 +944,42 @@ image ipl_to_image(IplImage* src)
     return out;
 }
 
+IplImage* image_to_Ipl(image img, int w, int h, int depth, int c, int step)
+{
+   int i, j, k, count= 0; 
+   IplImage* src= cvCreateImage(cvSize(w, h), depth, c);
+
+    for(k= 0; k < c; ++k){
+        for(i = 0; i < h; ++i){
+            for(j = 0; j < w; ++j){
+        src->imageData[i*step + j*c + k] = img.data[count++] * 255.;
+        }
+         }
+          }
+   cvCvtColor(src, src, CV_RGB2BGR);
+   return src;
+}
+
+/*
+Mat image_to_Mat(image img, int w, int h, int depth, int c)
+{
+   int i, j, k, count= 0; 
+   IplImage* src= cvCreateImage(cvSize(w, h), depth, c);
+  
+    for(k= 0; k < c; ++k){
+        for(i = 0; i < h; ++i){
+            for(j = 0; j < w; ++j){
+        src->imageData[i*step + j*c + k] = img.data[count++];
+        }
+         }
+          }
+   cvCvtColor(src, src, CV_RGB2BGR);
+   cv::Mat dst = cv::cvarrToMat(src, true);
+   cvReleaseImage(&src);
+    
+   return dst;
+}*/
+
 image load_image_cv(char *filename, int channels)
 {
     IplImage* src = 0;
@@ -955,6 +991,10 @@ image load_image_cv(char *filename, int channels)
         fprintf(stderr, "OpenCV can't force load with %d channels\n", channels);
     }
 
+    //add debug
+    //printf("%s\n", filename);
+    //flag = 1;
+
     if( (src = cvLoadImage(filename, flag)) == 0 )
     {
         fprintf(stderr, "Cannot load image \"%s\"\n", filename);
@@ -962,7 +1002,8 @@ image load_image_cv(char *filename, int channels)
         sprintf(buff, "echo %s >> bad.list", filename);
         system(buff);
         return make_image(10,10,3);
-        //exit(0);
+        // printf(" Cannot load image \"%s\"\n", filename);
+        // exit(0);
     }
     image out = ipl_to_image(src);
     cvReleaseImage(&src);
@@ -971,7 +1012,6 @@ image load_image_cv(char *filename, int channels)
 }
 
 #endif
-
 
 image load_image_stb(char *filename, int channels)
 {
